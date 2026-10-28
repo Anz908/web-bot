@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>ANZ Bot Pro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      min-height: 100vh;
+      background: #050510;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow-x: hidden;
+      color: #e0e0ff;
+    }
+    
+    /* Animated blobs */
+    .blob-container {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    .blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #7c3aed, transparent);
+      top: -100px; left: -100px;
+      animation-delay: 0s;
+    }
+    
+    .blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, #0ea5e9, transparent);
+      top: 50%; right: -100px;
+      animation-delay: -3s;
+    }
+    
+    .blob-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #ec4899, transparent);
+      bottom: -50px; left: 40%;
+      animation-delay: -6s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+    
+    /* Main container */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    /* Glass card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .logo {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+    
+    .subtitle {
+      color: rgba(255,255,255,0.4);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    
+    /* Mode toggle */
+    .mode-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 4px;
+      margin-bottom: 28px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(56,189,248,0.3));
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.3);
+      border: 1px solid rgba(167,139,250,0.3);
+    }
+    
+    /* Input group */
+    .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .input-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+      display: block;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    
+    .glass-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: #e0e0ff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .glass-input:focus {
+      border-color: rgba(167,139,250,0.5);
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+    }
+    
+    .glass-input::placeholder {
+      color: rgba(255,255,255,0.2);
+    }
+    
+    /* KKM row */
+    .kkm-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .kkm-row .glass-input {
+      flex: 1;
+    }
+    
+    .kkm-select {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: #e0e0ff;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .kkm-select option {
+      background: #1a0a3a;
+    }
+    
+    /* Launch button */
+    .launch-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #7c3aed, #0ea5e9);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .launch-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .launch-btn:hover::before {
+      opacity: 1;
+    }
+    
+    .launch-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+    }
+    
+    .launch-btn:active {
+      transform: translateY(0);
+    }
+    
+    /* Status terminal */
+    .status-terminal {
+      margin-top: 24px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 160px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    
+    .dot-red { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green { background: #28c840; }
+    
+    .terminal-title {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      margin-left: 4px;
+    }
+    
+    .log-entry {
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      padding: 3px 0;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .log-entry.info { color: #38bdf8; }
+    .log-entry.success { color: #4ade80; }
+    .log-entry.warn { color: #fbbf24; }
+    .log-entry.error { color: #f87171; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    /* Basic mode - image upload */
+    .upload-zone {
+      border: 2px dashed rgba(167,139,250,0.3);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.02);
+      margin-bottom: 16px;
+    }
+    
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: rgba(167,139,250,0.7);
+      background: rgba(124,58,237,0.1);
+    }
+    
+    .upload-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    
+    .upload-text {
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+    }
+    
+    .upload-text span {
+      color: #a78bfa;
+      font-weight: 600;
+    }
+    
+    /* Answer output */
+    .answer-output {
+      display: none;
+      margin-top: 20px;
+    }
+    
+    .answer-output.show {
+      display: block;
+    }
+    
+    .answer-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 12px;
+    }
+    
+    .answer-title {
+      font-size: 12px;
+      color: #4ade80;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .answer-title::before {
+      content: '●';
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    
+    .answer-content {
+      font-size: 14px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.85);
+      white-space: pre-wrap;
+    }
+    
+    /* Mode panels */
+    .mode-panel {
+      display: none;
+    }
+    
+    .mode-panel.active {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Image preview */
+    #imagePreview {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 12px;
+      display: none;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    
+    .target-score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    
+    .target-score-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+    
+    .score-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    
+    .score-option input[type="radio"] {
+      accent-color: #a78bfa;
+    }
+    
+    .score-option label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob-container">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<div class="container">
+  <div class="glass-card">
+    
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">⚡ ANZ Bot Pro</div>
+      <div class="subtitle">AI-Powered Exam Assistant</div>
+    </div>
+    
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="switchMode('basic')">
+        📷 Mode Basic
+      </button>
+      <button class="mode-btn" onclick="switchMode('uty')">
+        🤖 Mode UTY
+      </button>
+    </div>
+    
+    <!-- BASIC MODE -->
+    <div id="basicPanel" class="mode-panel active">
+      
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">🖼️</div>
+        <div class="upload-text">
+          <span>Klik atau drag</span> foto soal di sini<br>
+          Bisa soal ujian, PR, tugas sekolah
+        </div>
+      </div>
+      
+      <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(event)">
+      
+      <img id="imagePreview" alt="Preview">
+      
+      <button class="launch-btn" id="analyzeBtn" onclick="analyzeImage()" style="display:none">
+        🔍 Analisis & Tampilkan Semua Jawaban
+      </button>
+      
+      <div class="answer-output" id="answerOutput">
+        <div class="answer-card">
+          <div class="answer-title">Jawaban AI</div>
+          <div class="answer-content" id="answerContent"></div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- UTY MODE -->
+    <div id="utyPanel" class="mode-panel">
+      
+      <div class="input-group">
+        <label class="input-label">👤 Nama Peserta</label>
+        <input class="glass-input" type="text" id="namaInput" placeholder="Masukkan nama kamu...">
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">🏫 Kelas</label>
+        <input class="glass-input" type="text" id="kelasInput" placeholder="Contoh: XI IPA 2">
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">📊 KKM</label>
+        <div class="kkm-row">
+          <input class="glass-input" type="number" id="kkmInput" placeholder="Nilai KKM (misal: 75)" min="0" max="100">
+          <select class="kkm-select" id="kkmMode">
+            <option value="above">Di Atas KKM</option>
+            <option value="below">Di Bawah KKM</option>
+            <option value="perfect">Nilai 100</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">🔗 Link Ujian</label>
+        <input class="glass-input" type="url" id="linkInput" placeholder="https://...">
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">🔑 Kode Ujian <span style="color:rgba(255,255,255,0.2);font-size:10px">OPSIONAL</span></label>
+        <input class="glass-input" type="text" id="kodeInput" placeholder="Kosongkan jika tidak ada">
+      </div>
+      
+      <button class="launch-btn" onclick="launchUTY()">
+        🚀 Mulai Sesi AI
+      </button>
+      
+      <!-- Status Terminal -->
+      <div class="status-terminal">
+        <div class="terminal-header">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="terminal-title">ANZ Bot — Status Monitor</span>
+        </div>
+        <div id="statusLog">
+          <div class="log-entry info">» Sistem siap. Masukkan data dan mulai sesi.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
+
+<!-- Floating stealth widget (UTY mode) -->
+<div id="stealthWidget" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;">
+  <div style="
+    background:rgba(10,5,25,0.85);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(167,139,250,0.3);
+    border-radius:16px;
+    padding:16px;
+    width:300px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  ">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="color:#a78bfa;font-size:13px;font-weight:700;">⚡ ANZ Live</span>
+      <div style="display:flex;gap:8px;">
+        <button onclick="minimizeWidget()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:12px;">—</button>
+        <button onclick="closeWidget()" style="background:rgba(255,80,80,0.2);border:none;color:#f87171;width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:12px;">✕</button>
+      </div>
+    </div>
+    <textarea id="widgetQuestion" placeholder="Paste soal di sini..." style="
+      width:100%;
+      height:80px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px;
+      color:#e0e0ff;
+      font-size:12px;
+      padding:8px;
+      resize:none;
+      outline:none;
+    "></textarea>
+    <button onclick="askLive()" style="
+      width:100%;
+      margin-top:8px;
+      padding:8px;
+      background:linear-gradient(135deg,#7c3aed,#0ea5e9);
+      border:none;
+      border-radius:8px;
+      color:white;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+    ">Jawab ⚡</button>
+    <div id="widgetAnswer" style="
+      margin-top:8px;
+      font-size:12px;
+      color:#4ade80;
+      min-height:40px;
+      padding:8px;
+      background:rgba(0,0,0,0.2);
+      border-radius:8px;
+      display:none;
+      line-height:1.6;
+    "></div>
+  </div>
+</div>
+
+<script>
+  let currentMode = 'basic';
+  let selectedFile = null;
+  let isMinimized = false;
+  
+  // Mode switch
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', (i === 0 && mode === 'basic') || (i === 1 && mode === 'uty'));
+    });
+    document.getElementById('basicPanel').classList.toggle('active', mode === 'basic');
+    document.getElementById('utyPanel').classList.toggle('active', mode === 'uty');
+  }
+  
+  // Drag and drop
+  const uploadZone = document.getElementById('uploadZone');
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) processFile(file);
+  });
+  
+  function handleFile(event) {
+    const file = event.target.files[0];
+    if (file) processFile(file);
+  }
+  
+  function processFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const preview = document.getElementById('imagePreview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      document.getElementById('analyzeBtn').style.display = 'block';
+      document.getElementById('answerOutput').classList.remove('show');
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  async function analyzeImage() {
+    if (!selectedFile) return;
+    
+    const btn = document.getElementById('analyzeBtn');
+    btn.innerHTML = '<span class="spinner"></span>AI sedang menganalisis soal...';
+    btn.disabled = true;
+    
+    document.getElementById('answerOutput').classList.remove('show');
+    
+    try {
+      const base64 = await fileToBase64(selectedFile);
+      const mediaType = selectedFile.type;
+      
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: mediaType, data: base64 }
+              },
+              {
+                type: "text",
+                text: `Kamu adalah asisten jawaban soal. Analisis gambar ini yang berisi soal ujian/tugas sekolah.
+
+TUGAS KAMU:
+1. Identifikasi SEMUA soal yang ada di gambar
+2. Berikan jawaban LENGKAP dan BENAR untuk SETIAP soal
+3. Jika pilihan ganda: sebutkan huruf pilihan DAN penjelasan singkat kenapa itu benar
+4. Jika essay/isian: berikan jawaban lengkap
+
+FORMAT OUTPUT:
+📝 Soal [nomor]: [tulis ulang soalnya singkat]
+✅ Jawaban: [jawaban lengkap]
+💡 Alasan: [penjelasan singkat jika perlu]
+
+---
+
+Berikan SEMUA jawaban tanpa ada yang dilewati. Gunakan bahasa Indonesia.`
+                      }
+            ]
+          }]
+        })
+      });
+      
+      const data = await response.json();
+      const answer = data.content[0].text;
+      
+      document.getElementById('answerContent').textContent = answer;
+      document.getElementById('answerOutput').classList.add('show');
+      
+    } catch (err) {
+      document.getElementById('answerContent').textContent = '❌ Error: ' + err.message;
+      document.getElementById('answerOutput').classList.add('show');
+    }
+    
+    btn.innerHTML = '🔍 Analisis & Tampilkan Semua Jawaban';
+    btn.disabled = false;
+  }
+  
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  
+  // UTY Mode
+  function addLog(message, type = 'info') {
+    const log = document.getElementById('statusLog');
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    const time = new Date().toLocaleTimeString('id-ID');
+    entry.textContent = `[${time}] ${message}`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+  }
+  
+  function launchUTY() {
+    const nama = document.getElementById('namaInput').value.trim();
+    const kelas = document.getElementById('kelasInput').value.trim();
+    const kkm = document.getElementById('kkmInput').value.trim();
+    const kkmMode = document.getElementById('kkmMode').value;
+    const link = document.getElementById('linkInput').value.trim();
+    const kode = document.getElementById('kodeInput').value.trim();
+    
+    if (!nama || !kelas || !link) {
+      addLog('⚠ Isi nama, kelas, dan link ujian dulu!', 'warn');
+      return;
+    }
+    
+    addLog(`✦ Inisialisasi sesi untuk ${nama} (${kelas})`, 'info');
+    
+    setTimeout(() => addLog('⟳ Memuat konfigurasi AI...', 'info'), 400);
+    setTimeout(() => addLog(`✓ Target: ${kkmMode === 'perfect' ? 'Nilai 100' : kkmMode === 'above' ? `Di atas KKM (${kkm})` : `Di bawah KKM (${kkm})`}`, 'success'), 800);
+    setTimeout(() => {
+      addLog(`⟳ Membuka link ujian...`, 'info');
+      
+      // Open exam in new window
+      const examWindow = window.open(link, 'ANZ_Exam', 'width=1200,height=800,left=0,top=0');
+      
+      if (kode) {
+        addLog(`✓ Kode ujian tersimpan: ${kode}`, 'success');
+      }
+      
+      addLog('✓ Link ujian terbuka di jendela terpisah', 'success');
+    }, 1200);
+    
+    setTimeout(() => {
+      addLog('⟳ Mengaktifkan jendela asisten stealth...', 'info');
+    }, 1800);
+    
+    setTimeout(() => {
+      addLog('✓ Asisten siap! Paste soal ke widget untuk jawaban instan', 'success');
+      addLog('» Widget muncul di pojok kanan bawah ↘', 'info');
+      
+      // Show stealth widget
+      document.getElementById('stealthWidget').style.display = 'block';
+      
+      // Store session info
+      sessionStorage.setItem('anzSession', JSON.stringify({
+        nama, kelas, kkm, kkmMode, kode
+      }));
+      
+    }, 2400);
+    
+    setTimeout(() => {
+      addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      addLog('📋 CARA PAKAI MODE UTY:', 'warn');
+      addLog('1. Buka ujian di tab/jendela yang terbuka', 'info');
+      addLog('2. Copy soal → paste ke widget ↘', 'info');
+      addLog('3. Klik Jawab untuk jawaban instan', 'info');
+      addLog('4. Widget tidak terdeteksi sistem ujian', 'success');
+    }, 3000);
+  }
+  
+  // Widget functions
+  async function askLive() {
+    const question = document.getElementById('widgetQuestion').value.trim();
+    if (!question) return;
+    
+    const answerDiv = document.getElementById('widgetAnswer');
+    answerDiv.style.display = 'block';
+    answerDiv.textContent = '⟳ Mencari jawaban...';
+    
+    const session = JSON.parse(sessionStorage.getItem('anzSession') || '{}');
+    const kkmInfo = session.kkmMode === 'perfect' ? 'Berikan jawaban yang benar untuk nilai 100.' :
+                    session.kkmMode === 'above' ? `Target di atas KKM ${session.kkm}.` :
+                    `Target di bawah KKM ${session.kkm} (acak beberapa salah).`;
+    
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: `Jawab soal ujian berikut dengan SINGKAT dan TEPAT. ${kkmInfo}\n\nSoal: ${question}\n\nFormat: Jawaban langsung, singkat, tanpa basa-basi.`
+          }]
+        })
+      });
+      
+      const data = await response.json();
+      answerDiv.textContent = data.content[0].text;
+    } catch (err) {
+      answerDiv.textContent = '❌ Error: ' + err.message;
+    }
+  }
+  
+  // Widget keyboard shortcut
+  document.getElementById('widgetQuestion')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.ctrlKey) askLive();
+  });
+  
+  function minimizeWidget() {
+    const widget = document.getElementById('stealthWidget');
+    const content = widget.querySelector('textarea, button, #widgetAnswer');
+    isMinimized = !isMinimized;
+    // Toggle body content
+    const body = widget.querySelector('div > div');
+    const items = body.querySelectorAll('textarea, button:not(:first-child), #widgetAnswer');
+    items.forEach(el => el.style.display = isMinimized ? 'none' : '');
+  }
+  
+  function closeWidget() {
+    document.getElementById('stealthWidget').style.display = 'none';
+    addLog('» Widget ditutup. Ketik /widget untuk buka lagi.', 'warn');
+  }
+  
+  // Make widget draggable
+  const widget = document.getElementById('stealthWidget');
+  let isDragging = false, startX, startY, origX, origY;
+  
+  widget.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'TEXTAREA') return;
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = widget.getBoundingClientRect();
+    origX = rect.left;
+    origY = rect.top;
+    widget.style.cursor = 'grabbing';
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    widget.style.right = 'auto';
+    widget.style.bottom = 'auto';
+    widget.style.left = (origX + dx) + 'px';
+    widget.style.top = (origY + dy) + 'px';
+  });
+  
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    widget.style.cursor = 'default';
+  });
+</script>
+
+</body>
+</html>
